@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace FLogger
 {
     public class FLogger
@@ -10,27 +5,33 @@ namespace FLogger
         private static string _logPath = string.Empty;
         private static string _filePath = string.Empty;
         private static string _logSeparetor = "".PadLeft(100, '=');
+        /// <summary>
+        /// Por padrão o nome do arquivo sempre será FLogger mas podendo ser alterado.
+        /// </summary>
+        public string FileName { get; set; } = "Flogger";
 
-        public FLogger()
+        public FLogger(string logPath, string filename = null)
         {
-            _logPath = "C:\\";
+            _logPath = logPath;
 
             if (!Directory.Exists(_logPath))
                 Directory.CreateDirectory(_logPath);
 
-            var fileName = "teste" + DateTime.Now.ToString("yyyy-MM-dd");
+            if (!string.IsNullOrEmpty(filename))
+                FileName = filename;
 
-            _filePath = Path.Combine(_logPath, $"{fileName}.log");
+            var absolutPath = $"{FileName}{DateTime.Now.ToString("yyyy-MM-dd")}.log";
 
-            WriteLine("Inicializando LOG: " + DateTime.Now.ToString());
-            WriteLine("Caminho do arquivo: " + _filePath);
+            _filePath = Path.Combine(_logPath, absolutPath);
+
+            Write($"Inicializando log {DateTime.Now}");
         }
 
         /// <summary>
-        /// Escrevo um texto no arquivo, é gerado um stream no momento e depois fechamo o arquivo
+        /// Escrevo um texto no arquivo, é gerado um stream no momento e depois fechado o arquivo.
         /// </summary>
-        /// <param name="lineMessage">A linha de texto que será inserida no arquivo</param>
-        public void WriteLine(string lineMessage)
+        /// <param name="lineMessage">A linha de texto que será inserida no arquivo.</param>
+        public void Write(string lineMessage)
         {
             try
             {
@@ -56,6 +57,31 @@ namespace FLogger
             {
                 throw new Exception(ex.Message, ex);
             }
+        }
+
+        /// <summary>
+        /// Escrevo um Exception no arquivo, é gerado um stream no momento e depois fechado o arquivo.
+        /// </summary>
+        /// <param name="exception">A Exception que será inserida no arquivo.</param>
+        public void Write(Exception exception)
+        {
+            Write($"Data: {exception.Data}");
+            Write($"Erro: {exception.Message}");
+            Write($"InnerException: {(exception.InnerException is null ? "Não informado." : exception.InnerException.ToString())}");
+            Write($"StackTrace: {(exception.StackTrace ?? "Não informado.")}");
+            Write($"Source: {exception.Source}");
+            Write($"HelpLink: {exception.HelpLink}");
+
+            Dispose();
+        }
+
+        /// <summary>
+        /// Encerro o log.
+        /// </summary>
+        public void Dispose()
+        {
+            Write($"Encerramento do log {DateTime.Now}");
+            Write(_logSeparetor);
         }
     }
 }
